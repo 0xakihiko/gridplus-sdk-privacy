@@ -1,7 +1,7 @@
 {
-  "name": "gridplus-sdk",
-  "version": "2.2.0",
-  "description": "SDK to interact with GridPlus Lattice1 device",
+  "name": "gridplus-sdk-privacy",
+  "version": "2.2.0-privacy",
+  "description": "UNOFFICIAL. USE GRIDPLUS-SDK. SDK to interact with GridPlus Lattice1 device with modifications for overridable configurations.",
   "scripts": {
     "build": "NODE_ENV=production tsc -p tsconfig.json",
     "commit": "git-cz",
@@ -30,7 +30,7 @@
   "main": "./dist/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GridPlus/gridplus-sdk.git"
+    "url": "https://github.com/0xakihiko/gridplus-sdk-privacy.git"
   },
   "dependencies": {
     "@ethereumjs/common": "2.4.0",
