@@ -448,11 +448,17 @@ function buildUrlForSupportedChainAndAddress({ supportedChain, address }) {
   return urlWithRoute + apiKeyParam
 }
 
+/** 
+ * Builds a URL for fetching calldata from block explorers for any supported chains 
+ * */
+function buildUrlForPassedAPIAndAddress({ baseUrl, address }) {
+  return `${baseUrl}/${address}`;
+}
 /**
  * Takes a list of ABI data objects and a selector, and returns the earliest ABI data object that
  * matches the selector.
  */
-export function selectDefFrom4byteABI (abiData: any[], selector: string) {
+export function selectDefFrom4byteABI(abiData: any[], selector: string) {
   if (abiData.length > 1) {
     console.warn('WARNING: There are multiple results. Using the first one.');
   }
@@ -483,9 +489,9 @@ export function selectDefFrom4byteABI (abiData: any[], selector: string) {
 }
 
 /**
- *  Fetches calldata from a remote scanner based on the transaction's `chainId`
+ *  Fetches calldata from a remote scanner based on the transaction's `chainId`, if _abiUrlBase is passed it will use this as the network, if _4byteUrlBase will use this for 4byte lookup as backup
  */
-export async function fetchCalldataDecoder (_data: Uint8Array | string, to: string, _chainId: number | string) {
+export async function fetchCalldataDecoder(_data: Uint8Array | string, to: string, _chainId: number | string, _abiUrlBase?: string, _4byteUrlBase?: string) {
   try {
     // Exit if there is no data. The 2 comes from the 0x prefix, but a later
     // check will confirm that there are at least 4 bytes of data in the buffer.
@@ -513,8 +519,8 @@ export async function fetchCalldataDecoder (_data: Uint8Array | string, to: stri
       : await fetchExternalNetworkForChainId(chainId);
 
     try {
-      if (supportedChain) {
-        const url = buildUrlForSupportedChainAndAddress({ supportedChain, address: to })
+      if (supportedChain || _abiUrlBase) {
+        const url = _abiUrlBase ? buildUrlForPassedAPIAndAddress({ baseUrl: _abiUrlBase, address: to }) : buildUrlForSupportedChainAndAddress({ supportedChain, address: to })
         return await superagent
           .get(url)
           .then(res => {
@@ -536,7 +542,7 @@ export async function fetchCalldataDecoder (_data: Uint8Array | string, to: stri
     }
 
     // Fallback to checking 4byte
-    const url = `https://www.4byte.directory/api/v1/signatures?hex_signature=0x${selector}`
+    const url = _4byteUrlBase ? `${_4byteUrlBase}0x${selector}` : `https://www.4byte.directory/api/v1/signatures?hex_signature=0x${selector}`
     return await superagent
       .get(url)
       .then(res => {
