@@ -11,17 +11,13 @@ import inRange from 'lodash/inRange';
 import isInteger from 'lodash/isInteger';
 import { decode as rlpDecode, encode as rlpEncode } from 'rlp';
 import { ecdsaRecover } from 'secp256k1';
+import superagent from 'superagent';
 import { Calldata } from '.';
-import superagent from 'superagent'
 import {
   AES_IV,
-  BIP_CONSTANTS,
-  NETWORKS_BY_CHAIN_ID,
-  HARDENED_OFFSET,
-  responseCodes,
+  BIP_CONSTANTS, EXTERNAL_NETWORKS_BY_CHAIN_ID_URL, HARDENED_OFFSET, NETWORKS_BY_CHAIN_ID, responseCodes,
   responseMsgs,
-  VERSION_BYTE,
-  EXTERNAL_NETWORKS_BY_CHAIN_ID_URL,
+  VERSION_BYTE
 } from './constants';
 const { COINS, PURPOSES } = BIP_CONSTANTS;
 const EC = elliptic.ec;
@@ -158,7 +154,7 @@ export const splitFrames = function (data, frameSz) {
 }
 
 /** @internal */
-function isBase10NumStr (x) {
+function isBase10NumStr(x) {
   const bn = new BigNum(x).toString().split('.').join('');
   const s = new String(x);
   // Note that the JS native `String()` loses precision for large numbers, but we only
@@ -417,7 +413,7 @@ export const getV = function (tx, resp) {
  * Fetches an external JSON file containing networks indexed by chain id from a GridPlus repo, and
  * returns the parsed JSON.
  */
-async function fetchExternalNetworkForChainId (
+async function fetchExternalNetworkForChainId(
   chainId: number | string,
 ): Promise<{
   [key: string]: {
@@ -441,7 +437,7 @@ async function fetchExternalNetworkForChainId (
 /** 
  * Builds a URL for fetching calldata from block explorers for any supported chains 
  * */
-function buildUrlForSupportedChainAndAddress ({ supportedChain, address }) {
+function buildUrlForSupportedChainAndAddress({ supportedChain, address }) {
   const baseUrl = supportedChain.baseUrl;
   const apiRoute = supportedChain.apiRoute;
   const urlWithRoute = `${baseUrl}/${apiRoute}&address=${address}`;
@@ -509,6 +505,8 @@ export async function fetchCalldataDecoder (_data: Uint8Array | string, to: stri
     // Convert the chainId to a number and use it to determine if we can call out to
     // an etherscan-like explorer for richer data.
     const chainId = Number(_chainId);
+
+    // Use _chainNetwork if value is not null
     const cachedNetwork = NETWORKS_BY_CHAIN_ID[chainId];
     const supportedChain = cachedNetwork
       ? cachedNetwork
